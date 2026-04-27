@@ -1,0 +1,168 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  allChapters: CollectionEntry<'chapters'>[];
+  allLessons: CollectionEntry<'lessons'>[];
+  currentLessonId?: string;
+}
+
+const { allChapters, allLessons, currentLessonId } = Astro.props;
+
+const sortedChapters = [...allChapters].sort((a, b) => a.data.chapter - b.data.chapter);
+
+function lessonsForChapter(chapterNum: number) {
+  return allLessons
+    .filter(l => l.data.chapter === chapterNum && !l.data.draft)
+    .sort((a, b) => a.data.lesson - b.data.lesson);
+}
+---
+
+<nav id="sidebar" aria-label="Course navigation">
+  <div class="sidebar-header">
+    <a href="/" class="site-title">Learn GML</a>
+  </div>
+
+  <div class="chapter-list">
+    {sortedChapters.map(chapter => (
+      <div class="chapter">
+        <a
+          href={`/chapters/${chapter.data.chapter}`}
+          class="chapter-title"
+        >
+          Chapter {chapter.data.chapter}: {chapter.data.title}
+        </a>
+        <ul class="lesson-list">
+          {lessonsForChapter(chapter.data.chapter).map(lesson => (
+            <li
+              class="lesson-item"
+              data-lesson-id={lesson.id}
+            >
+              <a
+                href={`/lessons/${lesson.id}`}
+                aria-current={lesson.id === currentLessonId ? 'page' : undefined}
+              >
+                {lesson.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+
+  <div class="sidebar-footer">
+    <ThemeToggle />
+  </div>
+</nav>
+
+<style>
+  #sidebar {
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font);
+    height: 100vh;
+    left: 0;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    width: var(--sidebar-width);
+  }
+
+  .sidebar-header {
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 1.5em;
+  }
+
+  .site-title {
+    color: var(--sidebar-text);
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .site-title:hover {
+    color: var(--sidebar-accent);
+  }
+
+  .chapter-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1em 0;
+  }
+
+  .chapter {
+    margin-bottom: 0.5em;
+  }
+
+  .chapter-title {
+    color: var(--sidebar-text);
+    display: block;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.6em 1.5em;
+    text-decoration: none;
+    text-transform: uppercase;
+    opacity: 0.7;
+    transition: opacity var(--transition), color var(--transition);
+  }
+
+  .chapter-title:hover {
+    color: var(--sidebar-accent);
+    opacity: 1;
+  }
+
+  .lesson-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .lesson-item a {
+    border-left: 3px solid transparent;
+    color: var(--sidebar-text);
+    display: block;
+    font-size: 0.9em;
+    padding: 0.45em 1.5em 0.45em 1.75em;
+    text-decoration: none;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+  }
+
+  .lesson-item a:hover {
+    color: var(--sidebar-accent);
+  }
+
+  .lesson-item a[aria-current="page"] {
+    border-left-color: var(--sidebar-accent);
+    color: var(--sidebar-accent);
+    font-weight: 700;
+  }
+
+  /* Completion indicator added by client script */
+  .lesson-item.completed a::after {
+    content: " ✓";
+    font-size: 0.85em;
+    opacity: 0.7;
+  }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--sidebar-border);
+    padding: 1em 1.5em;
+  }
+</style>
+
+<script>
+  // Mark completed lessons from localStorage
+  document.querySelectorAll<HTMLElement>('.lesson-item[data-lesson-id]').forEach(item => {
+    const id = item.dataset.lessonId!;
+    if (localStorage.getItem(`completed:${id}`) === 'true') {
+      item.classList.add('completed');
+    }
+  });
+</script>

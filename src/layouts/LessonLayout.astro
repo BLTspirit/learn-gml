@@ -1,0 +1,46 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  currentLessonId?: string;
+}
+
+const { title, description, currentLessonId } = Astro.props;
+
+const [allChapters, allLessons] = await Promise.all([
+  getCollection('chapters'),
+  getCollection('lessons'),
+]);
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="layout">
+    <Sidebar
+      allChapters={allChapters}
+      allLessons={allLessons}
+      currentLessonId={currentLessonId}
+    />
+    <main class="content">
+      <slot />
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .content {
+    color: var(--sidebar-text);
+    margin-left: var(--sidebar-width);
+    min-width: 0;
+    padding: 2.5em;
+    width: 100%;
+  }
+</style>

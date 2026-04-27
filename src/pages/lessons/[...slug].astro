@@ -1,0 +1,100 @@
+---
+import { getCollection, render } from 'astro:content';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+
+export async function getStaticPaths() {
+  const lessons = await getCollection('lessons');
+  return lessons.map((lesson) => ({
+    params: { slug: lesson.id },
+    props: { lesson },
+  }));
+}
+
+const { lesson } = Astro.props;
+const { Content, headings } = await render(lesson);
+---
+
+<LessonLayout
+  title={lesson.data.title}
+  description={lesson.data.description}
+  currentLessonId={lesson.id}
+>
+  <header>
+    <p class="chapter-label">Chapter {lesson.data.chapter}, Lesson {lesson.data.lesson}</p>
+    <h1>{lesson.data.title}</h1>
+  </header>
+
+  {headings.length > 0 && (
+    <nav aria-label="On this page">
+      <strong>On this page</strong>
+      <ul>
+        {headings.map(heading => (
+          <li><a href={`#${heading.slug}`}>{heading.text}</a></li>
+        ))}
+      </ul>
+    </nav>
+  )}
+
+  <article>
+    <Content />
+  </article>
+</LessonLayout>
+
+<style>
+  header {
+    margin-bottom: 2em;
+  }
+
+  .chapter-label {
+    color: var(--sidebar-accent);
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.5em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  nav {
+    border-left: 3px solid var(--sidebar-accent);
+    margin-bottom: 2.5em;
+    padding: 0.75em 1.25em;
+  }
+
+  nav strong {
+    display: block;
+    font-size: 0.8em;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5em;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav a {
+    color: var(--sidebar-text);
+    font-size: 0.9em;
+    opacity: 0.8;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--sidebar-accent);
+    opacity: 1;
+  }
+
+  article {
+    line-height: 1.7;
+    max-width: 68em;
+  }
+</style>

@@ -1,0 +1,51 @@
+---
+---
+
+<button id="theme-toggle" aria-label="Toggle theme">
+  <span data-label-dark>Light mode</span>
+  <span data-label-light>Dark mode</span>
+</button>
+
+<style>
+  button {
+    background: none;
+    border: 1px solid var(--sidebar-border);
+    border-radius: var(--radius);
+    color: var(--sidebar-text);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.8em;
+    letter-spacing: 0.05em;
+    padding: 0.5em 1em;
+    transition: border-color var(--transition);
+    width: 100%;
+  }
+
+  button:hover {
+    border-color: var(--sidebar-accent);
+    color: var(--sidebar-accent);
+  }
+
+  [data-label-dark],
+  [data-label-light] {
+    display: none;
+  }
+
+  :global([data-theme="dark"]) [data-label-dark] {
+    display: inline;
+  }
+
+  :global([data-theme="light"]) [data-label-light] {
+    display: inline;
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('theme-toggle')!;
+  btn.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+</script>

@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;700;900&display=swap');
+
+:root {
+  --bg: #1e1e1e;
+  --sidebar-bg: #585858;
+  --sidebar-text: #ffffff;
+  --sidebar-accent: #f2849e;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-width: 280px;
+  --radius: 4px;
+  --font: "Source Sans 3", "Source Sans Pro", Helvetica, sans-serif;
+  --transition: 0.2s ease;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-weight: 300;
+  background: var(--bg);
+}
