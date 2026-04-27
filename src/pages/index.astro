@@ -1,17 +1,314 @@
 ---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import Settings from '../components/Settings.astro';
 
+const [allChapters, allLessons] = await Promise.all([
+  getCollection('chapters'),
+  getCollection('lessons'),
+]);
+
+const sortedChapters = [...allChapters].sort((a, b) => a.data.chapter - b.data.chapter);
+
+function lessonsForChapter(chapterNum: number) {
+  return allLessons
+    .filter(l => l.data.chapter === chapterNum && !l.data.draft)
+    .sort((a, b) => a.data.lesson - b.data.lesson);
+}
+
+const firstLesson = allLessons
+  .filter(l => !l.data.draft)
+  .sort((a, b) => a.data.chapter - b.data.chapter || a.data.lesson - b.data.lesson)[0];
+
+const firstLessonHref = firstLesson ? `/lessons/${firstLesson.id}` : '#';
+
+const lessonMap = Object.fromEntries(
+  allLessons
+    .filter(l => !l.data.draft)
+    .map(l => [l.id, { href: `/lessons/${l.id}`, title: l.data.title }])
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Learn GML — Coding from Zero with GameMaker"
+  description="A beginner-friendly course that teaches GML from scratch. No prior programming experience required."
+>
+  <div class="page">
+    <header class="site-header">
+      <a href="/" class="site-title">Learn GML</a>
+      <div class="header-right">
+        <Settings dropdown={true} />
+        <div class="theme-btn">
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="hero-eyebrow">A free course by Noah Reeves</p>
+      <h1>Coding from Zero<br />with GameMaker</h1>
+      <p class="hero-desc">
+        Learn to program in GML (GameMaker Language) from the very beginning.
+        No prior experience required — just bring curiosity.
+      </p>
+      <a id="continue-btn" href={firstLessonHref} class="btn-primary">
+        Start Course →
+      </a>
+    </section>
+
+    <section class="course-outline">
+      <h2 class="section-label">Course Outline</h2>
+
+      {sortedChapters.map(chapter => {
+        const lessons = lessonsForChapter(chapter.data.chapter);
+        return (
+          <div class="chapter-block">
+            <div class="chapter-header">
+              <span class="chapter-num">Chapter {chapter.data.chapter}</span>
+              <h3 class="chapter-title">{chapter.data.title}</h3>
+              <p class="chapter-desc">{chapter.data.description}</p>
+            </div>
+            <ul class="lesson-list">
+              {lessons.map(lesson => (
+                <li class="lesson-item" data-lesson-id={lesson.id}>
+                  <a href={`/lessons/${lesson.id}`} class="lesson-link">
+                    <span class="lesson-num">{lesson.data.chapter}.{lesson.data.lesson}</span>
+                    <span class="lesson-title">{lesson.data.title}</span>
+                    <span class="check-mark" aria-hidden="true">✓</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </section>
+  </div>
+</BaseLayout>
+
+<script define:vars={{ lessonMap, firstLessonHref }}>
+  function updateContinueBtn() {
+    const btn = document.getElementById('continue-btn');
+    if (!btn) return;
+    const trackingEnabled = localStorage.getItem('trackProgress') !== 'false';
+    const last = trackingEnabled
+      ? JSON.parse(localStorage.getItem('lastLesson') || 'null')
+      : null;
+    if (last && lessonMap[last.id]) {
+      btn.href = lessonMap[last.id].href;
+      btn.textContent = `Continue: ${last.title} →`;
+    } else {
+      btn.href = firstLessonHref;
+      btn.textContent = 'Start Course →';
+    }
+  }
+
+  function applyCompletionState() {
+    const trackingEnabled = localStorage.getItem('trackProgress') !== 'false';
+    document.querySelectorAll('.lesson-item[data-lesson-id]').forEach(item => {
+      const id = item.dataset.lessonId;
+      const completed = trackingEnabled && localStorage.getItem(`completed:${id}`) === 'true';
+      item.classList.toggle('completed', completed);
+    });
+  }
+
+  updateContinueBtn();
+  applyCompletionState();
+
+  window.addEventListener('tracking-changed', () => {
+    updateContinueBtn();
+    applyCompletionState();
+  });
+  window.addEventListener('progress-reset', () => {
+    updateContinueBtn();
+    applyCompletionState();
+  });
+</script>
+
+<style>
+  .page {
+    color: var(--text);
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 0 2em 5em;
+  }
+
+  /* Header */
+  .site-header {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    padding: 1.25em 0;
+  }
+
+  .site-title {
+    color: var(--text);
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .site-title:hover {
+    color: var(--accent);
+  }
+
+  .header-right {
+    align-items: center;
+    display: flex;
+    gap: 1.25em;
+  }
+
+  .theme-btn {
+    flex-shrink: 0;
+    width: 120px;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 4.5em 0 3.5em;
+  }
+
+  .hero-eyebrow {
+    color: var(--accent);
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin: 0 0 1em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-size: 3em;
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0 0 0.6em;
+  }
+
+  .hero-desc {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    line-height: 1.7;
+    margin: 0 0 2.25em;
+    max-width: 44em;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    border-radius: var(--radius);
+    color: #ffffff;
+    display: inline-block;
+    font-size: 0.9em;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.8em 2em;
+    text-decoration: none;
+    transition: opacity var(--transition);
+  }
+
+  .btn-primary:hover {
+    opacity: 0.82;
+  }
+
+  /* Course outline */
+  .course-outline {
+    border-top: 1px solid var(--border);
+    padding-top: 2.5em;
+  }
+
+  .section-label {
+    color: var(--text-faint);
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    margin: 0 0 2.5em;
+    text-transform: uppercase;
+  }
+
+  .chapter-block {
+    margin-bottom: 3em;
+  }
+
+  .chapter-header {
+    margin-bottom: 1em;
+  }
+
+  .chapter-num {
+    color: var(--accent);
+    display: block;
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .chapter-title {
+    font-size: 1.15em;
+    font-weight: 700;
+    margin: 0 0 0.25em;
+  }
+
+  .chapter-desc {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .lesson-list {
+    border-left: 3px solid var(--border);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .lesson-link {
+    align-items: baseline;
+    color: var(--text);
+    display: flex;
+    gap: 0.75em;
+    padding: 0.5em 0 0.5em 1.25em;
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+
+  .lesson-link:hover {
+    color: var(--accent);
+  }
+
+  .lesson-num {
+    color: var(--text-faint);
+    flex-shrink: 0;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: color var(--transition);
+  }
+
+  .lesson-link:hover .lesson-num {
+    color: var(--accent);
+  }
+
+  .lesson-title {
+    flex: 1;
+    font-size: 0.95em;
+  }
+
+  .check-mark {
+    color: var(--text-faint);
+    display: none;
+    font-size: 0.8em;
+  }
+
+  .lesson-item.completed .check-mark {
+    display: inline;
+  }
+
+  .lesson-item.completed .lesson-link {
+    color: var(--text-muted);
+  }
+</style>

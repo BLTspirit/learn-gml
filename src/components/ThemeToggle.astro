@@ -9,21 +9,21 @@
 <style>
   button {
     background: none;
-    border: 1px solid var(--sidebar-border);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    color: var(--sidebar-text);
+    color: var(--text);
     cursor: pointer;
     font-family: var(--font);
     font-size: 0.8em;
     letter-spacing: 0.05em;
     padding: 0.5em 1em;
-    transition: border-color var(--transition);
+    transition: border-color var(--transition), color var(--transition);
     width: 100%;
   }
 
   button:hover {
-    border-color: var(--sidebar-accent);
-    color: var(--sidebar-accent);
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   [data-label-dark],

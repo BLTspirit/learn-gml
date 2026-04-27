@@ -14,6 +14,12 @@ const { lesson } = Astro.props;
 const { Content, headings } = await render(lesson);
 ---
 
+<script define:vars={{ lessonId: lesson.id, lessonTitle: lesson.data.title }}>
+  if (localStorage.getItem('trackProgress') !== 'false') {
+    localStorage.setItem('lastLesson', JSON.stringify({ id: lessonId, title: lessonTitle }));
+  }
+</script>
+
 <LessonLayout
   title={lesson.data.title}
   description={lesson.data.description}
@@ -46,7 +52,7 @@ const { Content, headings } = await render(lesson);
   }
 
   .chapter-label {
-    color: var(--sidebar-accent);
+    color: var(--accent);
     font-size: 0.8em;
     font-weight: 700;
     letter-spacing: 0.1em;
@@ -61,7 +67,7 @@ const { Content, headings } = await render(lesson);
   }
 
   nav {
-    border-left: 3px solid var(--sidebar-accent);
+    border-left: 3px solid var(--accent);
     margin-bottom: 2.5em;
     padding: 0.75em 1.25em;
   }
@@ -82,15 +88,13 @@ const { Content, headings } = await render(lesson);
   }
 
   nav a {
-    color: var(--sidebar-text);
+    color: var(--text-muted);
     font-size: 0.9em;
-    opacity: 0.8;
     text-decoration: none;
   }
 
   nav a:hover {
-    color: var(--sidebar-accent);
-    opacity: 1;
+    color: var(--accent);
   }
 
   article {

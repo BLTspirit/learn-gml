@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import themeScript from '../scripts/theme.ts?raw';
+import ProgressConsent from '../components/ProgressConsent.astro';
 
 interface Props {
   title: string;
@@ -25,5 +26,6 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <slot />
+    <ProgressConsent />
   </body>
 </html>

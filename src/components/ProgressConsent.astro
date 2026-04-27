@@ -1,0 +1,99 @@
+---
+---
+
+<div id="consent-banner" class="consent-banner" hidden>
+  <p>Track your lesson progress using browser storage?</p>
+  <div class="consent-actions">
+    <button id="consent-yes">Yes, track my progress</button>
+    <button id="consent-no">No thanks</button>
+  </div>
+</div>
+
+<script>
+  const banner = document.getElementById('consent-banner') as HTMLDivElement;
+
+  if (localStorage.getItem('trackProgress') === null) {
+    banner.hidden = false;
+  }
+
+  document.getElementById('consent-yes')!.addEventListener('click', () => {
+    localStorage.setItem('trackProgress', 'true');
+    banner.hidden = true;
+    window.dispatchEvent(new CustomEvent('tracking-changed', { detail: { enabled: true } }));
+  });
+
+  document.getElementById('consent-no')!.addEventListener('click', () => {
+    localStorage.setItem('trackProgress', 'false');
+    banner.hidden = true;
+  });
+</script>
+
+<style>
+  .consent-banner {
+    align-items: center;
+    background: #262626;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    bottom: 0;
+    box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-wrap: wrap;
+    font-family: var(--font);
+    gap: 0.75em 2em;
+    justify-content: center;
+    left: 0;
+    padding: 1em 2em;
+    position: fixed;
+    right: 0;
+    text-align: center;
+    z-index: 200;
+  }
+
+  .consent-banner[hidden] {
+    display: none;
+  }
+
+  .consent-banner p {
+    color: #e8e8e8;
+    font-size: 0.9em;
+    margin: 0;
+  }
+
+  .consent-actions {
+    display: flex;
+    gap: 0.65em;
+  }
+
+  #consent-yes {
+    background: var(--sidebar-accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #ffffff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.85em;
+    font-weight: 700;
+    padding: 0.45em 1.1em;
+    transition: opacity var(--transition);
+  }
+
+  #consent-yes:hover {
+    opacity: 0.85;
+  }
+
+  #consent-no {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius);
+    color: rgba(255, 255, 255, 0.75);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.85em;
+    padding: 0.45em 1.1em;
+    transition: border-color var(--transition), color var(--transition);
+  }
+
+  #consent-no:hover {
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+  }
+</style>

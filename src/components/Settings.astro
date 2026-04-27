@@ -1,0 +1,134 @@
+---
+interface Props {
+  dropdown?: boolean;
+}
+const { dropdown = false } = Astro.props;
+---
+
+<details class:list={['settings', { dropdown }]}>
+  <summary class="settings-summary">Settings</summary>
+  <div class="settings-panel">
+    <label class="setting-row">
+      <span class="setting-label">Track lesson progress</span>
+      <input type="checkbox" id="track-toggle" />
+    </label>
+    <button id="reset-progress" class="reset-btn">Reset all progress</button>
+  </div>
+</details>
+
+<script>
+  const toggle = document.getElementById('track-toggle') as HTMLInputElement;
+  const resetBtn = document.getElementById('reset-progress') as HTMLButtonElement;
+
+  toggle.checked = localStorage.getItem('trackProgress') !== 'false';
+
+  toggle.addEventListener('change', () => {
+    const enabled = toggle.checked;
+    localStorage.setItem('trackProgress', String(enabled));
+    window.dispatchEvent(new CustomEvent('tracking-changed', { detail: { enabled } }));
+  });
+
+  resetBtn.addEventListener('click', () => {
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('completed:'))
+      .forEach(k => localStorage.removeItem(k));
+    localStorage.removeItem('lastLesson');
+    window.dispatchEvent(new Event('progress-reset'));
+  });
+</script>
+
+<style>
+  .settings {
+    position: relative;
+  }
+
+  .settings-summary {
+    color: var(--text-faint);
+    cursor: pointer;
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    list-style: none;
+    text-transform: uppercase;
+    transition: color var(--transition);
+    user-select: none;
+  }
+
+  .settings-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-summary::after {
+    content: ' ▸';
+    display: inline-block;
+    transition: transform var(--transition);
+  }
+
+  .settings[open] .settings-summary::after {
+    transform: rotate(90deg);
+  }
+
+  .settings-summary:hover {
+    color: var(--text);
+  }
+
+  /* In-place expansion (sidebar default) */
+  .settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    padding: 0.75em 0 0.25em;
+  }
+
+  /* Dropdown overlay (home page header) */
+  .settings.dropdown .settings-panel {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    min-width: 210px;
+    padding: 1em 1.1em;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5em);
+    z-index: 50;
+  }
+
+  .setting-row {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-size: 0.85em;
+    gap: 0.75em;
+    justify-content: space-between;
+  }
+
+  .setting-label {
+    color: var(--text);
+  }
+
+  input[type="checkbox"] {
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+    height: 1em;
+    width: 1em;
+  }
+
+  .reset-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 0.82em;
+    padding: 0;
+    text-align: left;
+    text-decoration: underline;
+    transition: color var(--transition);
+  }
+
+  .reset-btn:hover {
+    color: var(--text);
+  }
+</style>

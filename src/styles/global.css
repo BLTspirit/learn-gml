@@ -2,6 +2,11 @@
 
 :root {
   --bg: #1e1e1e;
+  --text: #ffffff;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #f2849e;
+  --text-muted: rgba(255, 255, 255, 1.0);
+  --text-faint: rgba(255, 255, 255, 0.9);
   --sidebar-bg: #585858;
   --sidebar-text: #ffffff;
   --sidebar-accent: #f2849e;
@@ -13,7 +18,12 @@
 }
 
 [data-theme="light"] {
-  --bg: #ffffff;
+  --bg: #EADEDA;
+  --text: #171219;
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #b8374f;
+  --text-muted: #171219;
+  --text-faint: #171219;
 }
 
 *,
@@ -25,6 +35,7 @@
 body {
   margin: 0;
   font-family: var(--font);
-  font-weight: 300;
+  font-weight: 400;
   background: var(--bg);
+  color: var(--text);
 }

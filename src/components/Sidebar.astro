@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import ThemeToggle from './ThemeToggle.astro';
+import Settings from './Settings.astro';
 
 interface Props {
   allChapters: CollectionEntry<'chapters'>[];
@@ -52,6 +53,10 @@ function lessonsForChapter(chapterNum: number) {
     ))}
   </div>
 
+  <div class="sidebar-settings">
+    <Settings />
+  </div>
+
   <div class="sidebar-footer">
     <ThemeToggle />
   </div>
@@ -59,6 +64,15 @@ function lessonsForChapter(chapterNum: number) {
 
 <style>
   #sidebar {
+    /* Scope generic vars to always be sidebar-appropriate,
+       so child components (ThemeToggle, Settings) look right here. */
+    --bg: var(--sidebar-bg);
+    --text: var(--sidebar-text);
+    --border: var(--sidebar-border);
+    --accent: var(--sidebar-accent);
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --text-faint: rgba(255, 255, 255, 0.5);
+
     background: var(--sidebar-bg);
     color: var(--sidebar-text);
     display: flex;
@@ -151,6 +165,11 @@ function lessonsForChapter(chapterNum: number) {
     opacity: 0.7;
   }
 
+  .sidebar-settings {
+    border-top: 1px solid var(--sidebar-border);
+    padding: 0.85em 1.5em;
+  }
+
   .sidebar-footer {
     border-top: 1px solid var(--sidebar-border);
     padding: 1em 1.5em;
@@ -158,11 +177,17 @@ function lessonsForChapter(chapterNum: number) {
 </style>
 
 <script>
-  // Mark completed lessons from localStorage
-  document.querySelectorAll<HTMLElement>('.lesson-item[data-lesson-id]').forEach(item => {
-    const id = item.dataset.lessonId!;
-    if (localStorage.getItem(`completed:${id}`) === 'true') {
-      item.classList.add('completed');
-    }
-  });
+  function applyCompletionState() {
+    const trackingEnabled = localStorage.getItem('trackProgress') !== 'false';
+    document.querySelectorAll<HTMLElement>('.lesson-item[data-lesson-id]').forEach(item => {
+      const id = item.dataset.lessonId!;
+      const completed = trackingEnabled && localStorage.getItem(`completed:${id}`) === 'true';
+      item.classList.toggle('completed', completed);
+    });
+  }
+
+  applyCompletionState();
+
+  window.addEventListener('tracking-changed', applyCompletionState);
+  window.addEventListener('progress-reset', applyCompletionState);
 </script>
