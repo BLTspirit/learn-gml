@@ -25,6 +25,12 @@ const { title, description } = Astro.props;
     <script is:inline set:html={themeScript} />
   </head>
   <body>
+    <!-- Restore sidebar collapsed state before paint -->
+    <script is:inline>
+      if (localStorage.getItem('sidebarCollapsed') === 'true') {
+        document.body.setAttribute('data-sidebar-collapsed', '');
+      }
+    </script>
     <slot />
     <ProgressConsent />
   </body>

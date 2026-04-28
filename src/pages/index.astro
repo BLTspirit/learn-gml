@@ -63,10 +63,12 @@ const lessonMap = Object.fromEntries(
       {sortedChapters.map(chapter => {
         const lessons = lessonsForChapter(chapter.data.chapter);
         return (
-          <div class="chapter-block">
+          <div class="chapter-block" data-chapter-num={chapter.data.chapter}>
             <div class="chapter-header">
-              <span class="chapter-num">Chapter {chapter.data.chapter}</span>
-              <h3 class="chapter-title">{chapter.data.title}</h3>
+              <a href={`/chapters/${chapter.data.chapter}`} class="chapter-link">
+                <span class="chapter-num">Chapter {chapter.data.chapter}</span>
+                <h3 class="chapter-title">{chapter.data.title}<span class="chapter-complete-label" aria-hidden="true"> — Complete</span></h3>
+              </a>
               <p class="chapter-desc">{chapter.data.description}</p>
             </div>
             <ul class="lesson-list">
@@ -106,10 +108,18 @@ const lessonMap = Object.fromEntries(
 
   function applyCompletionState() {
     const trackingEnabled = localStorage.getItem('trackProgress') !== 'false';
+
     document.querySelectorAll('.lesson-item[data-lesson-id]').forEach(item => {
       const id = item.dataset.lessonId;
       const completed = trackingEnabled && localStorage.getItem(`completed:${id}`) === 'true';
       item.classList.toggle('completed', completed);
+    });
+
+    document.querySelectorAll('.chapter-block[data-chapter-num]').forEach(chapterEl => {
+      const lessonItems = chapterEl.querySelectorAll('.lesson-item[data-lesson-id]');
+      if (lessonItems.length === 0) return;
+      const allComplete = Array.from(lessonItems).every(item => item.classList.contains('completed'));
+      chapterEl.classList.toggle('completed', allComplete);
     });
   }
 
@@ -236,20 +246,37 @@ const lessonMap = Object.fromEntries(
     margin-bottom: 1em;
   }
 
+  .chapter-link {
+    color: var(--text);
+    display: block;
+    margin-bottom: 0.25em;
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+
+  .chapter-link:hover {
+    color: var(--accent);
+  }
+
   .chapter-num {
     color: var(--accent);
     display: block;
     font-size: 0.72em;
     font-weight: 700;
     letter-spacing: 0.12em;
-    margin-bottom: 0.3em;
+    margin-bottom: 0.2em;
     text-transform: uppercase;
+    transition: color var(--transition);
+  }
+
+  .chapter-link:hover .chapter-num {
+    color: var(--accent);
   }
 
   .chapter-title {
     font-size: 1.15em;
     font-weight: 700;
-    margin: 0 0 0.25em;
+    margin: 0;
   }
 
   .chapter-desc {
@@ -294,13 +321,13 @@ const lessonMap = Object.fromEntries(
   }
 
   .lesson-title {
-    flex: 1;
     font-size: 0.95em;
   }
 
   .check-mark {
-    color: var(--text-faint);
+    color: var(--complete);
     display: none;
+    flex-shrink: 0;
     font-size: 0.8em;
   }
 
@@ -309,6 +336,29 @@ const lessonMap = Object.fromEntries(
   }
 
   .lesson-item.completed .lesson-link {
-    color: var(--text-muted);
+    color: var(--complete);
+  }
+
+  .lesson-item.completed .lesson-num {
+    color: var(--complete);
+  }
+
+  .chapter-complete-label {
+    color: var(--complete);
+    display: none;
+    font-size: 0.85em;
+    font-weight: 700;
+  }
+
+  .chapter-block.completed .chapter-complete-label {
+    display: inline;
+  }
+
+  .chapter-block.completed .chapter-link {
+    color: var(--complete);
+  }
+
+  .chapter-block.completed .chapter-num {
+    color: var(--complete);
   }
 </style>

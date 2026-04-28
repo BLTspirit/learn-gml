@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SandboxLoader from '../../components/SandboxLoader.svelte';
+
+export async function getStaticPaths() {
+  const demos = import.meta.glob('../../components/demos/*.svelte');
+  return Object.keys(demos).map((path) => {
+    const name = path.split('/').pop()!.replace('.svelte', '');
+    return { params: { demo: name }, props: { name } };
+  });
+}
+
+const { name } = Astro.props;
+---
+
+<BaseLayout title={`Sandbox · ${name}`}>
+  <main class="sandbox">
+    <nav class="topbar">
+      <a href="/sandbox">← All demos</a>
+      <span class="name"><code>{name}</code></span>
+    </nav>
+
+    <div class="stage">
+      <SandboxLoader name={name} client:load />
+    </div>
+
+    <p class="hint">
+      Edit <code>src/components/demos/{name}.svelte</code> — saves hot-reload here instantly.
+    </p>
+  </main>
+</BaseLayout>
+
+<style>
+  .sandbox {
+    color: var(--text);
+    margin: 0 auto;
+    max-width: 900px;
+    padding: 2em;
+  }
+
+  .topbar {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 1em;
+    justify-content: space-between;
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+  }
+
+  .topbar a {
+    color: var(--accent);
+    font-size: 0.9em;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .topbar a:hover {
+    text-decoration: underline;
+  }
+
+  .name {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    opacity: 0.8;
+  }
+
+  .stage {
+    margin: 0 0 2em;
+  }
+
+  .hint {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  code {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-size: 0.85em;
+    padding: 0.1em 0.4em;
+  }
+</style>

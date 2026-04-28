@@ -7,9 +7,10 @@ interface Props {
   allChapters: CollectionEntry<'chapters'>[];
   allLessons: CollectionEntry<'lessons'>[];
   currentLessonId?: string;
+  currentChapterNum?: number;
 }
 
-const { allChapters, allLessons, currentLessonId } = Astro.props;
+const { allChapters, allLessons, currentLessonId, currentChapterNum } = Astro.props;
 
 const sortedChapters = [...allChapters].sort((a, b) => a.data.chapter - b.data.chapter);
 
@@ -27,12 +28,13 @@ function lessonsForChapter(chapterNum: number) {
 
   <div class="chapter-list">
     {sortedChapters.map(chapter => (
-      <div class="chapter">
+      <div class="chapter" data-chapter-num={chapter.data.chapter}>
         <a
           href={`/chapters/${chapter.data.chapter}`}
           class="chapter-title"
+          aria-current={chapter.data.chapter === currentChapterNum ? 'page' : undefined}
         >
-          Chapter {chapter.data.chapter}: {chapter.data.title}
+          Chapter {chapter.data.chapter}: {chapter.data.title}<span class="chapter-complete-label" aria-hidden="true"> — Complete</span>
         </a>
         <ul class="lesson-list">
           {lessonsForChapter(chapter.data.chapter).map(lesson => (
@@ -44,7 +46,7 @@ function lessonsForChapter(chapterNum: number) {
                 href={`/lessons/${lesson.id}`}
                 aria-current={lesson.id === currentLessonId ? 'page' : undefined}
               >
-                {lesson.data.title}
+                {lesson.data.title}<span class="lesson-check" aria-hidden="true">✓</span>
               </a>
             </li>
           ))}
@@ -72,6 +74,7 @@ function lessonsForChapter(chapterNum: number) {
     --accent: var(--sidebar-accent);
     --text-muted: rgba(255, 255, 255, 0.7);
     --text-faint: rgba(255, 255, 255, 0.5);
+    --complete: #6ee7b7;
 
     background: var(--sidebar-bg);
     color: var(--sidebar-text);
@@ -83,7 +86,9 @@ function lessonsForChapter(chapterNum: number) {
     overflow-y: auto;
     position: fixed;
     top: 0;
+    transition: transform 0.3s ease;
     width: var(--sidebar-width);
+    z-index: 100;
   }
 
   .sidebar-header {
@@ -132,6 +137,11 @@ function lessonsForChapter(chapterNum: number) {
     opacity: 1;
   }
 
+  .chapter-title[aria-current="page"] {
+    color: var(--sidebar-accent);
+    opacity: 1;
+  }
+
   .lesson-list {
     list-style: none;
     margin: 0;
@@ -139,11 +149,13 @@ function lessonsForChapter(chapterNum: number) {
   }
 
   .lesson-item a {
-    border-left: 3px solid transparent;
+    align-items: center;
+    border-left: 5px solid transparent;
     color: var(--sidebar-text);
-    display: block;
+    display: flex;
     font-size: 0.9em;
-    padding: 0.45em 1.5em 0.45em 1.75em;
+    gap: 0;
+    padding: 0.45em 1.25em 0.45em 1.75em;
     text-decoration: none;
     transition: color var(--transition), border-color var(--transition), background var(--transition);
   }
@@ -158,11 +170,44 @@ function lessonsForChapter(chapterNum: number) {
     font-weight: 700;
   }
 
-  /* Completion indicator added by client script */
-  .lesson-item.completed a::after {
-    content: " ✓";
+  .lesson-check {
+    display: none;
+    flex-shrink: 0;
+    font-size: 0.8em;
+    margin-left: 0.35em;
+  }
+
+  .lesson-item.completed .lesson-check {
+    display: inline;
+  }
+
+  .lesson-item.completed a {
+    color: var(--complete);
+  }
+
+  .lesson-item.completed a:hover {
+    color: var(--complete);
+    opacity: 0.8;
+  }
+
+  .chapter-complete-label {
+    display: none;
     font-size: 0.85em;
-    opacity: 0.7;
+    font-weight: 700;
+  }
+
+  .chapter.completed .chapter-complete-label {
+    display: inline;
+  }
+
+  .chapter.completed .chapter-title {
+    color: var(--complete);
+    opacity: 1;
+  }
+
+  .chapter.completed .chapter-title:hover {
+    color: var(--complete);
+    opacity: 0.8;
   }
 
   .sidebar-settings {
@@ -179,10 +224,18 @@ function lessonsForChapter(chapterNum: number) {
 <script>
   function applyCompletionState() {
     const trackingEnabled = localStorage.getItem('trackProgress') !== 'false';
+
     document.querySelectorAll<HTMLElement>('.lesson-item[data-lesson-id]').forEach(item => {
       const id = item.dataset.lessonId!;
       const completed = trackingEnabled && localStorage.getItem(`completed:${id}`) === 'true';
       item.classList.toggle('completed', completed);
+    });
+
+    document.querySelectorAll<HTMLElement>('.chapter[data-chapter-num]').forEach(chapterEl => {
+      const lessonItems = chapterEl.querySelectorAll<HTMLElement>('.lesson-item[data-lesson-id]');
+      if (lessonItems.length === 0) return;
+      const allComplete = Array.from(lessonItems).every(item => item.classList.contains('completed'));
+      chapterEl.classList.toggle('completed', allComplete);
     });
   }
 
@@ -190,4 +243,5 @@ function lessonsForChapter(chapterNum: number) {
 
   window.addEventListener('tracking-changed', applyCompletionState);
   window.addEventListener('progress-reset', applyCompletionState);
+  window.addEventListener('lesson-completed', applyCompletionState);
 </script>

@@ -7,9 +7,10 @@ interface Props {
   title: string;
   description?: string;
   currentLessonId?: string;
+  currentChapterNum?: number;
 }
 
-const { title, description, currentLessonId } = Astro.props;
+const { title, description, currentLessonId, currentChapterNum } = Astro.props;
 
 const [allChapters, allLessons] = await Promise.all([
   getCollection('chapters'),
@@ -19,28 +20,95 @@ const [allChapters, allLessons] = await Promise.all([
 
 <BaseLayout title={title} description={description}>
   <div class="layout">
+    <button id="sidebar-toggle" aria-label="Hide sidebar">‹</button>
     <Sidebar
       allChapters={allChapters}
       allLessons={allLessons}
       currentLessonId={currentLessonId}
+      currentChapterNum={currentChapterNum}
     />
     <main class="content">
-      <slot />
+      <div class="content-inner">
+        <slot />
+      </div>
     </main>
   </div>
 </BaseLayout>
 
 <style>
   .layout {
-    display: flex;
     min-height: 100vh;
   }
 
   .content {
     color: var(--text);
     margin-left: var(--sidebar-width);
-    min-width: 0;
     padding: 2.5em;
-    width: 100%;
+    transition: margin-left 0.3s ease;
+  }
+
+  :global(body[data-sidebar-collapsed]) .content {
+    margin-left: 0;
+  }
+
+  :global(body[data-sidebar-collapsed]) :global(#sidebar) {
+    transform: translateX(-100%);
+  }
+
+  #sidebar-toggle {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--sidebar-border);
+    border-left: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    font-size: 1.1em;
+    height: 2.4em;
+    left: var(--sidebar-width);
+    line-height: 1;
+    padding: 0 0.55em;
+    position: fixed;
+    top: 1em;
+    transition: left 0.3s ease, background var(--transition), color var(--transition);
+    width: 2em;
+    z-index: 200;
+  }
+
+  #sidebar-toggle:hover {
+    color: var(--sidebar-accent);
+  }
+
+  :global(body[data-sidebar-collapsed]) #sidebar-toggle {
+    left: 0;
+  }
+
+  .content-inner {
+    margin: 0 auto;
+    max-width: 900px;
   }
 </style>
+
+<script>
+  const btn = document.getElementById('sidebar-toggle') as HTMLButtonElement | null;
+
+  function syncToggle() {
+    if (!btn) return;
+    const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
+    btn.textContent = collapsed ? '›' : '‹';
+    btn.setAttribute('aria-label', collapsed ? 'Show sidebar' : 'Hide sidebar');
+  }
+
+  syncToggle();
+
+  btn?.addEventListener('click', () => {
+    const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
+    if (collapsed) {
+      document.body.removeAttribute('data-sidebar-collapsed');
+      localStorage.removeItem('sidebarCollapsed');
+    } else {
+      document.body.setAttribute('data-sidebar-collapsed', '');
+      localStorage.setItem('sidebarCollapsed', 'true');
+    }
+    syncToggle();
+  });
+</script>

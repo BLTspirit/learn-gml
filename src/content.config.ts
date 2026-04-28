@@ -2,7 +2,7 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const lessons = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/lessons' }),
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/lessons' }),
   schema: z.object({
     chapter: z.number(),
     lesson: z.number(),

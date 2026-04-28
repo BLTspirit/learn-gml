@@ -15,6 +15,7 @@
   --radius: 4px;
   --font: "Source Sans 3", "Source Sans Pro", Helvetica, sans-serif;
   --transition: 0.2s ease;
+  --complete: #6ee7b7;
 }
 
 [data-theme="light"] {
@@ -24,6 +25,7 @@
   --accent: #b8374f;
   --text-muted: #171219;
   --text-faint: #171219;
+  --complete: #065f46;
 }
 
 *,

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:noahs.games)",
+      "WebFetch(domain:html5up.net)",
+      "Bash(npx astro *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(npm run *)",
+      "Bash(start chrome *)",
+      "Bash(pkill -f \"astro dev\")",
+      "Bash(pkill -f \"node.*astro\")",
+      "Bash(rm -rf .astro node_modules/.vite dist)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:4321/sandbox/GridDemo)",
+      "Bash(curl -s http://localhost:4321/sandbox/GridDemo)"
+    ]
+  }
+}

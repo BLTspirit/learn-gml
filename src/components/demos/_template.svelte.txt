@@ -1,0 +1,39 @@
+<!--
+  Copy this file to a new name (without the underscore) to create a demo.
+  Files starting with `_` are ignored by the sandbox loader convention —
+  rename to e.g. `Counter.svelte` to make it appear at /sandbox/Counter.
+-->
+<script lang="ts">
+  let { label = 'Click me' } = $props<{ label?: string }>();
+
+  let count = $state(0);
+</script>
+
+<div class="demo">
+  <button onclick={() => count++}>{label}: {count}</button>
+</div>
+
+<style>
+  .demo {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5em;
+    text-align: center;
+  }
+
+  button {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #ffffff;
+    cursor: pointer;
+    font-family: var(--font);
+    font-size: 1em;
+    font-weight: 700;
+    padding: 0.7em 1.5em;
+  }
+
+  button:hover {
+    opacity: 0.85;
+  }
+</style>

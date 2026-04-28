@@ -1,0 +1,204 @@
+---
+import { getCollection, render } from 'astro:content';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+
+export async function getStaticPaths() {
+  const chapters = await getCollection('chapters');
+  return chapters.map((chapter) => ({
+    params: { n: String(chapter.data.chapter) },
+    props: { chapter },
+  }));
+}
+
+const { chapter } = Astro.props;
+const { Content, headings } = await render(chapter);
+
+const allLessons = await getCollection('lessons');
+const lessons = allLessons
+  .filter(l => l.data.chapter === chapter.data.chapter && !l.data.draft)
+  .sort((a, b) => a.data.lesson - b.data.lesson);
+---
+
+<LessonLayout
+  title={chapter.data.title}
+  description={chapter.data.description}
+  currentChapterNum={chapter.data.chapter}
+>
+  <header>
+    <p class="chapter-label">Chapter {chapter.data.chapter}</p>
+    <h1>{chapter.data.title}</h1>
+    <p class="chapter-desc">{chapter.data.description}</p>
+  </header>
+
+  {headings.length > 0 && (
+    <nav aria-label="On this page">
+      <strong>On this page</strong>
+      <ul>
+        {headings.map(h => (
+          <li><a href={`#${h.slug}`}>{h.text}</a></li>
+        ))}
+      </ul>
+    </nav>
+  )}
+
+  {Content && (
+    <article>
+      <Content />
+    </article>
+  )}
+
+  <section class="lessons-section">
+    <h2 class="lessons-heading">Lessons in this chapter</h2>
+    <ol class="lesson-list">
+      {lessons.map(lesson => (
+        <li class="lesson-item">
+          <a href={`/lessons/${lesson.id}`} class="lesson-link">
+            <span class="lesson-meta">
+              <span class="lesson-num">{lesson.data.chapter}.{lesson.data.lesson}</span>
+              <span class="lesson-title">{lesson.data.title}</span>
+            </span>
+            {lesson.data.description && (
+              <span class="lesson-desc">{lesson.data.description}</span>
+            )}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</LessonLayout>
+
+<style>
+  header {
+    margin-bottom: 2.5em;
+  }
+
+  .chapter-label {
+    color: var(--accent);
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.4em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0 0 0.4em;
+  }
+
+  .chapter-desc {
+    color: var(--text-muted);
+    font-size: 1.05em;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  nav {
+    border-left: 3px solid var(--accent);
+    margin-bottom: 2.5em;
+    padding: 0.75em 1.25em;
+  }
+
+  nav strong {
+    color: var(--text-faint);
+    display: block;
+    font-size: 0.8em;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5em;
+    text-transform: uppercase;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav a {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: var(--accent);
+  }
+
+  article {
+    border-bottom: 1px solid var(--border);
+    line-height: 1.7;
+    margin-bottom: 2.5em;
+    padding-bottom: 2.5em;
+  }
+
+  .lessons-heading {
+    color: var(--text-faint);
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    margin: 0 0 1.25em;
+    text-transform: uppercase;
+  }
+
+  .lesson-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 3px solid var(--border);
+  }
+
+  .lesson-item + .lesson-item {
+    border-top: 1px solid var(--border);
+  }
+
+  .lesson-link {
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+    padding: 0.8em 0 0.8em 1.25em;
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+
+  .lesson-link:hover {
+    color: var(--accent);
+  }
+
+  .lesson-meta {
+    align-items: baseline;
+    display: flex;
+    gap: 0.65em;
+  }
+
+  .lesson-num {
+    color: var(--text-faint);
+    flex-shrink: 0;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: color var(--transition);
+  }
+
+  .lesson-link:hover .lesson-num {
+    color: var(--accent);
+  }
+
+  .lesson-title {
+    font-size: 0.95em;
+    font-weight: 700;
+  }
+
+  .lesson-desc {
+    color: var(--text-muted);
+    font-size: 0.85em;
+    line-height: 1.4;
+    padding-left: 2.1em;
+    transition: color var(--transition);
+  }
+
+  .lesson-link:hover .lesson-desc {
+    color: var(--accent);
+  }
+</style>
